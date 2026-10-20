@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mi Billuyo - Arqueo y Control de Turno</title>
+
+  <!-- SOPORTE PWA E INSTALACIÓN EN CELULARES -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e11d48">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mi Billuyo">
+  <link rel="apple-touch-icon" href="logo.png">
+
+  <style>
+    :root {
+      --primary: #e11d48;
+      --primary-dark: #be123c;
+      --accent: #10b981;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 80px;
+    }
+
+    header {
+      background: #ffffff;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 2px 8px rgba(225, 29, 72, 0.25);
+      border: 1px solid #fecdd3;
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .brand-text small {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .tabs-nav {
+      display: flex;
+      background: #e2e8f0;
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 12px;
+      gap: 3px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: none;
+      padding: 8px 2px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .card-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title span.subtotal {
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .grid-denom { display: flex; flex-direction: column; gap: 8px; }
+    .row-denom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed #f1f5f9;
+    }
+    .row-denom:last-child { border-bottom: none; }
+    .denom-label { font-weight: 700; font-size: 1.05rem; width: 80px; color: #1e293b; }
+    .denom-controls { display: flex; align-items: center; gap: 6px; }
+
+    .btn-step {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      font-size: 1.3rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #334155;
+    }
+    .btn-step:active { background: #e2e8f0; transform: scale(0.96); }
+
+    input, select {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      background: #fff;
+      font-family: inherit;
+    }
+
+    input[type="number"] {
+      width: 65px;
+      height: 36px;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    input:focus, select:focus { border-color: var(--primary); }
+
+    .subtotal-val {
+      width: 90px;
+      text-align: right;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .field-row:last-child { margin-bottom: 0; }
+    .field-row label { font-size: 0.9rem; font-weight: 600; color: #334155; }
+    .field-row input.wide, .field-row select.wide {
+      width: 155px;
+      text-align: right;
+      padding: 7px 10px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .withdrawal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.9rem;
+    }
+    .withdrawal-item:last-child { border-bottom: none; }
+    .w-concept { font-weight: 700; color: #1e293b; }
+    .w-detail { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .w-amount { font-weight: 800; color: var(--primary-dark); font-size: 0.95rem; }
+
+    .summary-box {
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+      font-size: 0.92rem;
+      color: #cbd5e1;
+    }
+    .summary-row.highlight {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+    .summary-row.diff { 
+      font-weight: 700; 
+      padding: 8px; 
+      border-radius: 8px; 
+      margin: 10px 0; 
+      background: rgba(0,0,0,0.3);
+      border: 1px dashed #475569;
+    }
+    .summary-row.main {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 2px solid #334155;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #34d399;
+    }
+
+    .btn-main {
+      width: 100%;
+      padding: 13px;
+      border-radius: var(--radius);
+      border: none;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-main:active { transform: scale(0.98); }
+    .btn-whatsapp { background: #25d366; color: #ffffff; }
+    .btn-action-primary { background: var(--primary); color: #ffffff; }
+    .btn-outline { background: #ffffff; border: 1px solid var(--border); color: var(--text-muted); }
+
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .history-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+    .history-date { font-weight: 800; color: #0f172a; font-size: 0.95rem; }
+    .history-actors { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .history-diff-badge {
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .history-diff-exact { background: #dcfce7; color: #166534; }
+    .history-diff-fail { background: #fee2e2; color: #991b1b; }
+    .history-diff-surplus { background: #e0f2fe; color: #0369a1; }
+    .history-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #334155;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-container">
+      <img src="logo.png" alt="Mi Billuyo" class="app-logo" onerror="this.style.display='none'">
+      <div class="brand-text">
+        <h1>Mi Billuyo</h1>
+        <small id="header-cajero">Turno No Iniciado</small>
+      </div>
+    </div>
+    <span style="font-size: 0.72rem; font-weight: 700; background: #fdf2f8; color: var(--primary); padding: 4px 8px; border-radius: 20px;">
+      Offline
+    </span>
+  </header>
+
+  <div class="container">
+
+    <!-- MENÚ SUPERIOR (4 PESTAÑAS) -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="btn-tab-apertura" onclick="cambiarTab('apertura')">
+        📥 1. Apertura
+      </button>
+      <button class="tab-btn" id="btn-tab-retiro" onclick="cambiarTab('retiro')">
+        💸 2. Retiros
+      </button>
+      <button class="tab-btn" id="btn-tab-cierre" onclick="cambiarTab('cierre')">
+        🏁 3. Cierre
+      </button>
+      <button class="tab-btn" id="btn-tab-historial" onclick="cambiarTab('historial')">
+        📜 4. Historial
+      </button>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- PESTAÑA 1: APERTURA (CAMPOS LIMPIOS) -->
+    <!-- ============================================== -->
+    <div id="view-apertura">
+      <div class="card">
+        <div class="card-title">
+          <span>Datos del Turno</span>
+          <span class="status-pill" id="badge-ap-status" style="background:#e0f2fe; color:#0369a1;">No Iniciado</span>
+        </div>
+        <div class="field-row">
+          <label>Cajero que recibe:</label>
+          <input type="text" id="ap-cajero" placeholder="Nombre del cajero" style="width: 170px; padding: 6px 10px; font-weight: 600;">
+        </div>
+        <div class="field-row">
+          <label>WhatsApp del Cajero:</label>
+          <input type="tel" id="ap-tel-cajero" placeholder="10 dígitos (opcional)" style="width: 170px; padding: 6px 10px; font-weight: 600;">
+        </div>
+        <div class="field-row">
+          <label>Supervisor que entrega:</label>
+          <input type="text" id="ap-supervisor" placeholder="Nombre del supervisor" style="width: 170px; padding: 6px 10px; font-weight: 600;">
+        </div>
+        <div class="field-row" style="margin-top: 6px;">
+          <label>Fecha y hora apertura:</label>
+          <span id="lbl-apertura-timestamp" style="font-size: 0.88rem; font-weight: 800; color: var(--primary);">--:--:--</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>💵 Billetes de Fondo Inicial</span>
+          <span class="subtotal" id="ap-subtotal-billetes">$0.00</span>
+        </div>
+        <div class="grid-denom" id="container-ap-billetes"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🪙 Monedas de Fondo Inicial</span>
+          <span class="subtotal" id="ap-subtotal-monedas">$0.00</span>
+        </div>
+        <div class="grid-denom" id="container-ap-monedas"></div>
+      </div>
+
+      <div class="card" style="background: #f8fafc; border: 2px dashed #cbd5e1; text-align: center;">
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">TOTAL FONDO INICIAL CONTADO:</span>
+        <div style="font-size: 1.6rem; font-weight: 900; color: var(--accent); margin: 4px 0;" id="ap-total-fondo-calculado">$0.00</div>
+        <small style="color: #64748b; font-size: 0.78rem;">Verifiquen las piezas físicas antes de confirmar.</small>
+      </div>
+
+      <div style="margin-top: 4px;">
+        <button class="btn-main btn-action-primary" onclick="guardarApertura()">
+          ✅ Confirmar Apertura con Fecha y Hora
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- PESTAÑA 2: REGISTRAR RETIROS -->
+    <!-- ============================================== -->
+    <div id="view-retiro" style="display: none;">
+      <div class="card">
+        <div class="card-title">
+          <span>Nuevo Retiro de Efectivo</span>
+        </div>
+        
+        <div class="field-row">
+          <label>Concepto:</label>
+          <select id="ret-concepto" class="wide" style="width: 180px; text-align: left;">
+            <option value="Pago a Proveedor">Pago a Proveedor</option>
+            <option value="Retiro Parcial (Seguridad)">Retiro a Tómbola/Caja Fuerte</option>
+            <option value="Gasto Operativo">Gasto Operativo / Caja Chica</option>
+            <option value="Devolución / Ajuste">Devolución / Ajuste</option>
+          </select>
+        </div>
+
+        <div class="field-row" style="margin-top: 10px;">
+          <label>Monto a Retirar ($):</label>
+          <input type="number" id="ret-monto" class="wide" placeholder="0.00" style="font-size: 1.2rem; color: var(--primary);">
+        </div>
+
+        <div style="margin: 10px 0;">
+          <input type="text" id="ret-detalle" placeholder="Detalle (ej. Coca-Cola, Hielo, Remisión #102)" style="width: 100%; padding: 8px 12px; font-size: 0.95rem;">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="btn-main btn-action-primary" onclick="guardarRetiro(false)">
+            💾 Registrar Retiro en Sistema
+          </button>
+          <button class="btn-main btn-whatsapp" onclick="guardarRetiro(true)">
+            📲 Registrar y Enviar Comprobante al WhatsApp del Cajero
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Retiros Acumulados en Turno</span>
+          <span class="subtotal" id="lbl-total-retiros-tab1">$0.00</span>
+        </div>
+        <div id="lista-retiros-ui" style="display: flex; flex-direction: column;">
+          <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 12px 0;">
+            No hay retiros registrados en este turno.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- PESTAÑA 3: CIERRE, ARQUEO Y ENVÍO -->
+    <!-- ============================================== -->
+    <div id="view-cierre" style="display: none; flex-direction: column; gap: 14px;">
+
+      <div class="card" style="border: 2px solid #cbd5e1;">
+        <div class="card-title"><span>📊 Ventas Registradas en POS</span></div>
+        <div class="field-row">
+          <label>Venta en EFECTIVO (POS):</label>
+          <input type="number" id="pos-venta-efectivo" class="wide" placeholder="$ 0.00" oninput="calcularCierre()">
+        </div>
+        <div class="field-row">
+          <label>Venta en TARJETAS / OTROS (POS):</label>
+          <input type="number" id="pos-venta-otros" class="wide" placeholder="$ 0.00" oninput="calcularCierre()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>💵 Efectivo Físico Contado en Cajón</span>
+          <span class="subtotal" id="subtotal-billetes">$0.00</span>
+        </div>
+        <div class="grid-denom" id="container-billetes"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🪙 Monedas Físicas Contadas en Cajón</span>
+          <span class="subtotal" id="subtotal-monedas">$0.00</span>
+        </div>
+        <div class="grid-denom" id="container-monedas"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>💳 Vouchers y Terminales (Físicos)</span>
+          <span class="subtotal" id="subtotal-vouchers">$0.00</span>
+        </div>
+        
+        <div class="field-row">
+          <label>Tarjetas (Débito/Crédito):</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="number" id="vouch-tarj-pzs" placeholder="Pzs" style="width: 50px;" oninput="calcularCierre()">
+            <input type="number" id="vouch-tarj-monto" class="wide" placeholder="$ Monto" oninput="calcularCierre()">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label>Vales de Despensa:</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="number" id="vouch-vales-pzs" placeholder="Pzs" style="width: 50px;" oninput="calcularCierre()">
+            <input type="number" id="vouch-vales-monto" class="wide" placeholder="$ Monto" oninput="calcularCierre()">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label>Transferencias (SPEI):</label>
+          <input type="number" id="vouch-spei-monto" class="wide" placeholder="$ Monto" oninput="calcularCierre()">
+        </div>
+      </div>
+
+      <!-- RESUMEN CONSOLIDADO -->
+      <div class="summary-box">
+        <div class="card-title" style="color: #94a3b8; margin-bottom: 6px;">
+          <span>ARQUEO Y CUADRE DE CAJA</span>
+        </div>
+
+        <div style="font-size: 0.78rem; color: #94a3b8; margin-bottom: 10px;" id="cierre-tiempos-resumen">
+          Apertura: --:--:-- | Cierre en curso
+        </div>
+
+        <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px;">
+          1. Cuadre de Efectivo
+        </div>
+
+        <div class="summary-row">
+          <span>(+) Efectivo Inicial (Apertura):</span>
+          <strong id="res-fondo-inicial" style="color: #fff;">$0.00</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>(+) Venta Efectivo del POS:</span>
+          <strong id="res-venta-efectivo-pos" style="color: #fff;">$0.00</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>(-) Retiros Parciales / Gastos:</span>
+          <strong id="res-total-retiros" style="color: #f87171;">-$0.00</strong>
+        </div>
+
+        <div id="res-desglose-retiros" style="padding-left: 14px; margin-bottom: 6px; font-size: 0.8rem; color: #94a3b8; display: none;"></div>
+
+        <div class="summary-row highlight">
+          <span style="color: #38bdf8;">(=) EFECTIVO QUE DEBE HABER EN CAJA:</span>
+          <strong id="res-efectivo-teorico" style="color: #38bdf8; font-size: 1.05rem;">$0.00</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>(vs) Efectivo Físico Contado en Cajón:</span>
+          <strong id="res-efectivo-cajon" style="color: #fff; font-size: 1.05rem;">$0.00</strong>
+        </div>
+
+        <div class="summary-row diff" id="res-row-diff-efectivo">
+          <span id="lbl-diff-title">Diferencia en Efectivo:</span>
+          <strong id="res-diferencia" style="font-size: 1.1rem;">$0.00</strong>
+        </div>
+
+        <div style="font-size: 0.8rem; font-weight: 800; color: #fcd34d; text-transform: uppercase; margin: 12px 0 6px 0;">
+          2. Venta Total del Negocio
+        </div>
+
+        <div class="summary-row">
+          <span>Venta en Efectivo (POS):</span>
+          <strong id="res-vta-efectivo-label" style="color: #fff;">$0.00</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>Venta Otros Medios (Tarjetas/Vales/SPEI):</span>
+          <strong id="res-vouchers-total" style="color: #fff;">$0.00</strong>
+        </div>
+
+        <div class="summary-row highlight" style="background: rgba(251, 191, 36, 0.1);">
+          <span style="color: #fcd34d;">(=) VENTA TOTAL DEL TURNO:</span>
+          <strong id="res-gran-total-venta" style="color: #fcd34d; font-size: 1.15rem;">$0.00</strong>
+        </div>
+
+        <div class="summary-row main">
+          <span>TOTAL EFECTIVO A ENTREGAR AL SOBRE:</span>
+          <strong id="res-sobre-cierre">$0.00</strong>
+        </div>
+        <small style="color: #cbd5e1; display: block; margin-top: 4px; font-size: 0.8rem;">
+          Se entrega el 100% del efectivo físico del cajón + comprobantes firmados + vouchers.
+        </small>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-main btn-whatsapp" onclick="enviarCierreWhatsApp(true)">
+          📲 Enviar Corte por WhatsApp al Cajero
+        </button>
+        <button class="btn-main btn-outline" onclick="enviarCierreWhatsApp(false)">
+          📤 Compartir a Otro Número / Contacto
+        </button>
+        <button class="btn-main btn-action-primary" onclick="reiniciarTodoElTurno()">
+          🔄 Cerrar Turno y Guardar en Historial
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- PESTAÑA 4: HISTORIAL DE CORTES -->
+    <!-- ============================================== -->
+    <div id="view-historial" style="display: none; flex-direction: column; gap: 12px;">
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 1.05rem; font-weight: 800; color: var(--text);">Historial de Turnos</h2>
+          <small style="color: var(--text-muted);">Almacenado localmente en este dispositivo</small>
+        </div>
+        <button onclick="limpiarTodoElHistorial()" style="background: none; border: 1px solid #fecdd3; color: var(--primary); font-size: 0.75rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; cursor: pointer;">
+          Vaciar Todo
+        </button>
+      </div>
+
+      <div id="contenedor-historial-vacio" class="card" style="text-align: center; padding: 30px 20px; display: none;">
+        <div style="font-size: 2.2rem; margin-bottom: 6px;">📂</div>
+        <strong style="color: #334155;">Aún no hay cortes cerrados en el historial</strong>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+          Cada vez que cierres un turno quedará archivado aquí para consulta o reenvío.
+        </p>
+      </div>
+
+      <div id="lista-historial-cards"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const billetes = [1000, 500, 200, 100, 50, 20];
+    const monedas = [20, 10, 5, 2, 1, 0.5];
+
+    let turno = {
+      cajero: "",
+      telCajero: "",
+      supervisor: "",
+      fechaApertura: "",
+      horaApertura: "",
+      fondoInicial: 0,
+      retiros: []
+    };
+
+    function pad2(n) { return n < 10 ? '0' + n : n; }
+
+    function obtenerTimestampPreciso() {
+      const ahora = new Date();
+      const fecha = `${ahora.getFullYear()}-${pad2(ahora.getMonth() + 1)}-${pad2(ahora.getDate())}`;
+      const hora = `${pad2(ahora.getHours())}:${pad2(ahora.getMinutes())}:${pad2(ahora.getSeconds())}`;
+      return { fecha, hora };
+    }
+
+    // RELOJ EN TIEMPO REAL
+    setInterval(() => {
+      if (!turno.horaApertura) {
+        const ts = obtenerTimestampPreciso();
+        const el = document.getElementById('lbl-apertura-timestamp');
+        if (el) el.innerText = `${ts.fecha} ${ts.hora} (En vivo)`;
+      }
+    }, 1000);
+
+    function cargarTurnoDeMemoria() {
+      const data = localStorage.getItem('mibilluyo_turno_v7');
+      if (data) {
+        try { turno = JSON.parse(data); } catch(e){}
+      }
+      document.getElementById('ap-cajero').value = turno.cajero || "";
+      document.getElementById('ap-tel-cajero').value = turno.telCajero || "";
+      document.getElementById('ap-supervisor').value = turno.supervisor || "";
+      
+      if (turno.horaApertura) {
+        document.getElementById('lbl-apertura-timestamp').innerText = `${turno.fechaApertura} ${turno.horaApertura} ✓`;
+        document.getElementById('badge-ap-status').innerText = "Iniciado ✓";
+        document.getElementById('badge-ap-status').style.background = "#dcfce7";
+        document.getElementById('badge-ap-status').style.color = "#166534";
+        document.getElementById('header-cajero').innerText = `${turno.cajero || 'Cajero'} (Fondo: $${(turno.fondoInicial || 0).toLocaleString('es-MX')})`;
+      } else {
+        document.getElementById('header-cajero').innerText = "Turno No Iniciado";
+      }
+
+      renderListaRetiros();
+    }
+
+    function cambiarTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('view-apertura').style.display = 'none';
+      document.getElementById('view-retiro').style.display = 'none';
+      document.getElementById('view-cierre').style.display = 'none';
+      document.getElementById('view-historial').style.display = 'none';
+
+      if (tab === 'apertura') {
+        document.getElementById('btn-tab-apertura').classList.add('active');
+        document.getElementById('view-apertura').style.display = 'block';
+      } else if (tab === 'retiro') {
+        document.getElementById('btn-tab-retiro').classList.add('active');
+        document.getElementById('view-retiro').style.display = 'block';
+      } else if (tab === 'cierre') {
+        document.getElementById('btn-tab-cierre').classList.add('active');
+        document.getElementById('view-cierre').style.display = 'flex';
+        calcularCierre();
+      } else if (tab === 'historial') {
+        document.getElementById('btn-tab-historial').classList.add('active');
+        document.getElementById('view-historial').style.display = 'flex';
+        renderHistorial();
+      }
+    }
+
+    // --- CONTADOR APERTURA ---
+    function renderDenominacionesApertura() {
+      const bCont = document.getElementById('container-ap-billetes');
+      bCont.innerHTML = billetes.map(val => `
+        <div class="row-denom">
+          <span class="denom-label">$${val}</span>
+          <div class="denom-controls">
+            <button class="btn-step" onclick="modificarAp(${val}, -1, 'b')">-</button>
+            <input type="number" id="ap-b-${val}" value="0" min="0" oninput="calcularFondoApertura()">
+            <button class="btn-step" onclick="modificarAp(${val}, 1, 'b')">+</button>
+          </div>
+          <span class="subtotal-val" id="sub-ap-b-${val}">$0.00</span>
+        </div>
+      `).join('');
+
+      const mCont = document.getElementById('container-ap-monedas');
+      mCont.innerHTML = monedas.map(val => `
+        <div class="row-denom">
+          <span class="denom-label">$${val >= 1 ? val : '0.50'}</span>
+          <div class="denom-controls">
+            <button class="btn-step" onclick="modificarAp(${val}, -1, 'm')">-</button>
+            <input type="number" id="ap-m-${val}" value="0" min="0" oninput="calcularFondoApertura()">
+            <button class="btn-step" onclick="modificarAp(${val}, 1, 'm')">+</button>
+          </div>
+          <span class="subtotal-val" id="sub-ap-m-${val}">$0.00</span>
+        </div>
+      `).join('');
+    }
+
+    function modificarAp(val, delta, tipo) {
+      const input = document.getElementById(`ap-${tipo}-${val}`);
+      let actual = parseInt(input.value) || 0;
+      actual = Math.max(0, actual + delta);
+      input.value = actual;
+      calcularFondoApertura();
+    }
+
+    function calcularFondoApertura() {
+      let totB = 0;
+      billetes.forEach(b => {
+        const cant = parseInt(document.getElementById(`ap-b-${b}`).value) || 0;
+        const sub = cant * b;
+        totB += sub;
+        document.getElementById(`sub-ap-b-${b}`).innerText = `$${sub.toLocaleString('es-MX')}`;
+      });
+      document.getElementById('ap-subtotal-billetes').innerText = `$${totB.toLocaleString('es-MX')}`;
+
+      let totM = 0;
+      monedas.forEach(m => {
+        const cant = parseInt(document.getElementById(`ap-m-${m}`).value) || 0;
+        const sub = cant * m;
+        totM += sub;
+        document.getElementById(`sub-ap-m-${m}`).innerText = `$${sub.toLocaleString('es-MX')}`;
+      });
+      document.getElementById('ap-subtotal-monedas').innerText = `$${totM.toLocaleString('es-MX')}`;
+
+      const totalFondo = totB + totM;
+      document.getElementById('ap-total-fondo-calculado').innerText = `$${totalFondo.toLocaleString('es-MX')}`;
+      return totalFondo;
+    }
+
+    function guardarApertura() {
+      const totalFondo = calcularFondoApertura();
+      const ts = obtenerTimestampPreciso();
+
+      const nomCajero = document.getElementById('ap-cajero').value.trim();
+      const nomSupervisor = document.getElementById('ap-supervisor').value.trim();
+
+      if (!nomCajero) {
+        alert("Por favor escribe el nombre del cajero que recibe.");
+        return;
+      }
+
+      turno.cajero = nomCajero;
+      turno.telCajero = document.getElementById('ap-tel-cajero').value.trim().replace(/\D/g, '');
+      turno.supervisor = nomSupervisor || "Supervisor";
+      turno.fechaApertura = ts.fecha;
+      turno.horaApertura = ts.hora;
+      turno.fondoInicial = totalFondo;
+
+      localStorage.setItem('mibilluyo_turno_v7', JSON.stringify(turno));
+      
+      document.getElementById('lbl-apertura-timestamp').innerText = `${ts.fecha} ${ts.hora} ✓`;
+      document.getElementById('badge-ap-status').innerText = "Iniciado ✓";
+      document.getElementById('badge-ap-status').style.background = "#dcfce7";
+      document.getElementById('badge-ap-status').style.color = "#166534";
+      document.getElementById('header-cajero').innerText = `${turno.cajero} (Fondo: $${turno.fondoInicial.toLocaleString('es-MX')})`;
+      
+      alert(`Turno ABIERTO.\nHora: ${ts.hora}\nFondo recibido: $${totalFondo.toLocaleString('es-MX')}`);
+      cambiarTab('retiro');
+    }
+
+    // --- RETIROS DURANTE EL TURNO ---
+    function guardarRetiro(enviarWhatsApp) {
+      const concepto = document.getElementById('ret-concepto').value;
+      const monto = parseFloat(document.getElementById('ret-monto').value);
+      const detalle = document.getElementById('ret-detalle').value.trim();
+
+      if (isNaN(monto) || monto <= 0) {
+        alert("Por favor ingresa un monto válido para el retiro.");
+        return;
+      }
+
+      const ts = obtenerTimestampPreciso();
+      const nuevoRetiro = {
+        id: Date.now(),
+        fecha: ts.fecha,
+        hora: ts.hora,
+        concepto: concepto,
+        monto: monto,
+        detalle: detalle || "(Sin notas)"
+      };
+
+      turno.retiros.push(nuevoRetiro);
+      localStorage.setItem('mibilluyo_turno_v7', JSON.stringify(turno));
+
+      document.getElementById('ret-monto').value = '';
+      document.getElementById('ret-detalle').value = '';
+      renderListaRetiros();
+
+      if (enviarWhatsApp) {
+        enviarValeWhatsAppIndividual(nuevoRetiro);
+      } else {
+        alert(`Retiro parcial registrado a las ${ts.hora}:\n$${monto.toLocaleString('es-MX')} por ${concepto}`);
+      }
+    }
+
+    function enviarValeWhatsAppIndividual(r) {
+      let msj = `*COMPROBANTE DE RETIRO PARCIAL - MI BILLUYO* 💸%0A`;
+      msj += `👤 *Cajero:* ${encodeURIComponent(turno.cajero || 'Cajero')}%0A`;
+      msj += `🛡️ *Supervisor que retira:* ${encodeURIComponent(turno.supervisor || 'Supervisor')}%0A`;
+      msj += `📅 *Fecha:* ${encodeURIComponent(r.fecha)}%0A`;
+      msj += `⏰ *Hora exacta:* ${encodeURIComponent(r.hora)}%0A`;
+      msj += `--------------------------------%0A`;
+      msj += `📋 *Concepto:* ${encodeURIComponent(r.concepto)}%0A`;
+      msj += `📝 *Detalle:* ${encodeURIComponent(r.detalle)}%0A`;
+      msj += `💰 *MONTO RETIRADO:* *$${encodeURIComponent(r.monto.toLocaleString('es-MX'))}*%0A`;
+      msj += `--------------------------------%0A`;
+      msj += `_Este comprobante descuenta el efectivo de tu cajón para el corte final._`;
+
+      let url = `https://api.whatsapp.com/send?text=${msj}`;
+      if (turno.telCajero && turno.telCajero.length >= 10) {
+        const telFormateado = turno.telCajero.startsWith('52') ? turno.telCajero : '521' + turno.telCajero.slice(-10);
+        url = `https://api.whatsapp.com/send?phone=${telFormateado}&text=${msj}`;
+      }
+      window.open(url, '_blank');
+    }
+
+    function eliminarRetiro(id) {
+      if (confirm("¿Deseas cancelar este retiro registrado?")) {
+        turno.retiros = turno.retiros.filter(r => r.id !== id);
+        localStorage.setItem('mibilluyo_turno_v7', JSON.stringify(turno));
+        renderListaRetiros();
+      }
+    }
+
+    function renderListaRetiros() {
+      const cont = document.getElementById('lista-retiros-ui');
+      let tot = 0;
+      if (!turno.retiros || turno.retiros.length === 0) {
+        cont.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 12px 0;">No hay retiros registrados en este turno.</p>`;
+      } else {
+        cont.innerHTML = turno.retiros.map(r => {
+          tot += r.monto;
+          return `
+            <div class="withdrawal-item">
+              <div>
+                <div class="w-concept">${r.concepto}</div>
+                <div class="w-detail">⏱️ ${r.hora} | ${r.detalle}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="w-amount">-$${r.monto.toLocaleString('es-MX')}</span>
+                <button onclick="enviarValeWhatsAppIndividual({fecha:'${r.fecha}', hora:'${r.hora}', concepto:'${r.concepto}', monto:${r.monto}, detalle:'${r.detalle}'})" style="border:none; background:#dcfce7; color:#166534; font-size:0.75rem; font-weight:700; border-radius:6px; padding:4px 6px; cursor:pointer;" title="Reenviar WhatsApp">📲</button>
+                <button onclick="eliminarRetiro(${r.id})" style="border:none; background:none; cursor:pointer; color:#ef4444; font-size:1.1rem; padding: 4px;">&times;</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+      document.getElementById('lbl-total-retiros-tab1').innerText = `$${tot.toLocaleString('es-MX')}`;
+    }
+
+    // --- CONTADOR CIERRE ---
+    function renderDenominacionesCierre() {
+      const bCont = document.getElementById('container-billetes');
+      bCont.innerHTML = billetes.map(val => `
+        <div class="row-denom">
+          <span class="denom-label">$${val}</span>
+          <div class="denom-controls">
+            <button class="btn-step" onclick="modificarCierre(${val}, -1, 'b')">-</button>
+            <input type="number" id="input-b-${val}" value="0" min="0" oninput="calcularCierre()">
+            <button class="btn-step" onclick="modificarCierre(${val}, 1, 'b')">+</button>
+          </div>
+          <span class="subtotal-val" id="sub-b-${val}">$0.00</span>
+        </div>
+      `).join('');
+
+      const mCont = document.getElementById('container-monedas');
+      mCont.innerHTML = monedas.map(val => `
+        <div class="row-denom">
+          <span class="denom-label">$${val >= 1 ? val : '0.50'}</span>
+          <div class="denom-controls">
+            <button class="btn-step" onclick="modificarCierre(${val}, -1, 'm')">-</button>
+            <input type="number" id="input-m-${val}" value="0" min="0" oninput="calcularCierre()">
+            <button class="btn-step" onclick="modificarCierre(${val}, 1, 'm')">+</button>
+          </div>
+          <span class="subtotal-val" id="sub-m-${val}">$0.00</span>
+        </div>
+      `).join('');
+    }
+
+    function modificarCierre(val, delta, tipo) {
+      const input = document.getElementById(`input-${tipo}-${val}`);
+      let actual = parseInt(input.value) || 0;
+      actual = Math.max(0, actual + delta);
+      input.value = actual;
+      calcularCierre();
+    }
+
+    // --- CÁLCULO DE CIERRE ---
+    function calcularCierre() {
+      let totBilletes = 0;
+      billetes.forEach(b => {
+        const cant = parseInt(document.getElementById(`input-b-${b}`).value) || 0;
+        const sub = cant * b;
+        totBilletes += sub;
+        document.getElementById(`sub-b-${b}`).innerText = `$${sub.toLocaleString('es-MX')}`;
+      });
+      document.getElementById('subtotal-billetes').innerText = `$${totBilletes.toLocaleString('es-MX')}`;
+
+      let totMonedas = 0;
+      monedas.forEach(m => {
+        const cant = parseInt(document.getElementById(`input-m-${m}`).value) || 0;
+        const sub = cant * m;
+        totMonedas += sub;
+        document.getElementById(`sub-m-${m}`).innerText = `$${sub.toLocaleString('es-MX')}`;
+      });
+      document.getElementById('subtotal-monedas').innerText = `$${totMonedas.toLocaleString('es-MX')}`;
+
+      const efectivoFisicoCajon = totBilletes + totMonedas;
+
+      const vtaEfectivoPos = parseFloat(document.getElementById('pos-venta-efectivo').value) || 0;
+      const vtaOtrosPos = parseFloat(document.getElementById('pos-venta-otros').value) || 0;
+
+      const tarjMonto = parseFloat(document.getElementById('vouch-tarj-monto').value) || 0;
+      const valesMonto = parseFloat(document.getElementById('vouch-vales-monto').value) || 0;
+      const speiMonto = parseFloat(document.getElementById('vouch-spei-monto').value) || 0;
+      const totVouchersContados = tarjMonto + valesMonto + speiMonto;
+      document.getElementById('subtotal-vouchers').innerText = `$${totVouchersContados.toLocaleString('es-MX')}`;
+
+      let totRetiros = 0;
+      const agrupados = {};
+      (turno.retiros || []).forEach(r => {
+        totRetiros += r.monto;
+        agrupados[r.concepto] = (agrupados[r.concepto] || 0) + r.monto;
+      });
+
+      const desgloseEl = document.getElementById('res-desglose-retiros');
+      const conceptosKeys = Object.keys(agrupados);
+      if (conceptosKeys.length > 0) {
+        desgloseEl.style.display = 'block';
+        desgloseEl.innerHTML = conceptosKeys.map(k => `• ${k}: $${agrupados[k].toLocaleString('es-MX')}`).join('<br>');
+      } else {
+        desgloseEl.style.display = 'none';
+      }
+
+      const fondoInicial = turno.fondoInicial || 0;
+      const efectivoTeoricoEsperado = fondoInicial + vtaEfectivoPos - totRetiros;
+      const diferenciaEfectivo = efectivoFisicoCajon - efectivoTeoricoEsperado;
+      const ventaTotalTurno = vtaEfectivoPos + (vtaOtrosPos > 0 ? vtaOtrosPos : totVouchersContados);
+
+      const tsActual = obtenerTimestampPreciso();
+      document.getElementById('cierre-tiempos-resumen').innerText = 
+        `Apertura: ${turno.horaApertura || 'No registrada'} | Cierre en curso: ${tsActual.hora}`;
+
+      document.getElementById('res-fondo-inicial').innerText = `$${fondoInicial.toLocaleString('es-MX')}`;
+      document.getElementById('res-venta-efectivo-pos').innerText = `$${vtaEfectivoPos.toLocaleString('es-MX')}`;
+      document.getElementById('res-total-retiros').innerText = `-$${totRetiros.toLocaleString('es-MX')}`;
+      document.getElementById('res-efectivo-teorico').innerText = `$${efectivoTeoricoEsperado.toLocaleString('es-MX')}`;
+      document.getElementById('res-efectivo-cajon').innerText = `$${efectivoFisicoCajon.toLocaleString('es-MX')}`;
+
+      const diffEl = document.getElementById('res-diferencia');
+      const diffTitle = document.getElementById('lbl-diff-title');
+      if (vtaEfectivoPos === 0 && totRetiros === 0 && fondoInicial === 0) {
+        diffTitle.innerText = "Diferencia:";
+        diffEl.innerText = "$0.00";
+        diffEl.style.color = "#94a3b8";
+      } else if (diferenciaEfectivo === 0) {
+        diffTitle.innerText = "Diferencia en Efectivo:";
+        diffEl.innerText = "$0.00 (Exacto ✓)";
+        diffEl.style.color = "#34d399";
+      } else if (diferenciaEfectivo < 0) {
+        diffTitle.innerText = "Diferencia en Efectivo:";
+        diffEl.innerText = `-$${Math.abs(diferenciaEfectivo).toLocaleString('es-MX')} (FALTANTE ⚠️)`;
+        diffEl.style.color = "#f87171";
+      } else {
+        diffTitle.innerText = "Diferencia en Efectivo:";
+        diffEl.innerText = `+$${diferenciaEfectivo.toLocaleString('es-MX')} (SOBRANTE)`;
+        diffEl.style.color = "#60a5fa";
+      }
+
+      document.getElementById('res-vta-efectivo-label').innerText = `$${vtaEfectivoPos.toLocaleString('es-MX')}`;
+      document.getElementById('res-vouchers-total').innerText = `$${(vtaOtrosPos > 0 ? vtaOtrosPos : totVouchersContados).toLocaleString('es-MX')}`;
+      document.getElementById('res-gran-total-venta').innerText = `$${ventaTotalTurno.toLocaleString('es-MX')}`;
+      document.getElementById('res-sobre-cierre').innerText = `$${efectivoFisicoCajon.toLocaleString('es-MX')}`;
+
+      return {
+        fondoInicial,
+        vtaEfectivoPos,
+        totRetiros,
+        efectivoTeoricoEsperado,
+        efectivoFisicoCajon,
+        diferenciaEfectivo,
+        totVouchersContados,
+        ventaTotalTurno,
+        agrupados
+      };
+    }
+
+    function guardarEnHistorial(corteData) {
+      let historial = [];
+      try {
+        const guardado = localStorage.getItem('mibilluyo_historial_cortes');
+        if (guardado) historial = JSON.parse(guardado);
+      } catch(e){}
+
+      historial.unshift(corteData);
+      localStorage.setItem('mibilluyo_historial_cortes', JSON.stringify(historial));
+    }
+
+    function enviarCierreWhatsApp(enviarAlCajero) {
+      const calc = calcularCierre();
+      const tsCierre = obtenerTimestampPreciso();
+      const fondo = calc.fondoInicial.toLocaleString('es-MX');
+
+      let textoRetiros = "";
+      Object.keys(calc.agrupados).forEach(k => {
+        textoRetiros += `   • ${k}: $${calc.agrupados[k].toLocaleString('es-MX')}%0A`;
+      });
+
+      let detalleRetiros = "";
+      if (turno.retiros && turno.retiros.length > 0) {
+        detalleRetiros = `%0A*DETALLE DE RETIROS PARCIALES:*%0A`;
+        turno.retiros.forEach(r => {
+          detalleRetiros += `⏱️ [${encodeURIComponent(r.hora)}] $${encodeURIComponent(r.monto.toLocaleString('es-MX'))} - ${encodeURIComponent(r.concepto)} (${encodeURIComponent(r.detalle)})%0A`;
+        });
+      }
+
+      let diffTexto = calc.diferenciaEfectivo === 0 ? "$0.00 (Exacto ✓)" : (calc.diferenciaEfectivo < 0 ? `-$${Math.abs(calc.diferenciaEfectivo).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${calc.diferenciaEfectivo.toLocaleString('es-MX')} (SOBRANTE)`);
+
+      let msj = `*CORTE DE CAJA - MI BILLUYO* 💵%0A`;
+      msj += `👤 *Cajero:* ${encodeURIComponent(turno.cajero || 'Cajero')}%0A`;
+      msj += `🛡️ *Supervisor:* ${encodeURIComponent(turno.supervisor || 'Supervisor')}%0A`;
+      msj += `📅 *Fecha:* ${encodeURIComponent(tsCierre.fecha)}%0A`;
+      msj += `⏰ *Apertura:* ${encodeURIComponent(turno.horaApertura || 'N/A')}%0A`;
+      msj += `⏰ *Cierre:* ${encodeURIComponent(tsCierre.hora)}%0A`;
+      msj += `================================%0A`;
+      msj += `*1. CUADRE DE EFECTIVO:*%0A`;
+      msj += `(+) Fondo Inicial: $${encodeURIComponent(fondo)}%0A`;
+      msj += `(+) Venta Efectivo POS: $${encodeURIComponent(calc.vtaEfectivoPos.toLocaleString('es-MX'))}%0A`;
+      msj += `(-) Retiros Parciales: -$${encodeURIComponent(calc.totRetiros.toLocaleString('es-MX'))}%0A`;
+      if (textoRetiros) msj += textoRetiros;
+      msj += `--------------------------------%0A`;
+      msj += `(=) Efectivo que DEBE haber: *$${encodeURIComponent(calc.efectivoTeoricoEsperado.toLocaleString('es-MX'))}*%0A`;
+      msj += `(vs) Efectivo Físico Contado: *$${encodeURIComponent(calc.efectivoFisicoCajon.toLocaleString('es-MX'))}*%0A`;
+      msj += `⚖️ *Diferencia en Caja:* *${encodeURIComponent(diffTexto)}*%0A`;
+      msj += `================================%0A`;
+      msj += `*2. VENTA TOTAL NEGOCIO:*%0A`;
+      msj += `• Efectivo POS: $${encodeURIComponent(calc.vtaEfectivoPos.toLocaleString('es-MX'))}%0A`;
+      msj += `• Otros Medios (Tarjetas/Vales): $${encodeURIComponent(calc.totVouchersContados.toLocaleString('es-MX'))}%0A`;
+      msj += `📊 *TOTAL VENDIDO:* *$${encodeURIComponent(calc.ventaTotalTurno.toLocaleString('es-MX'))}*%0A`;
+      msj += `================================%0A`;
+      msj += `💰 *EFECTIVO EN SOBRE AL SUPERVISOR:* *$${encodeURIComponent(calc.efectivoFisicoCajon.toLocaleString('es-MX'))}*%0A`;
+      if (detalleRetiros) msj += detalleRetiros;
+      msj += `--------------------------------%0A`;
+      msj += `Generado con Mi Billuyo App`;
+
+      let url = `https://api.whatsapp.com/send?text=${msj}`;
+      if (enviarAlCajero && turno.telCajero && turno.telCajero.length >= 10) {
+        const telFormateado = turno.telCajero.startsWith('52') ? turno.telCajero : '521' + turno.telCajero.slice(-10);
+        url = `https://api.whatsapp.com/send?phone=${telFormateado}&text=${msj}`;
+      }
+      window.open(url, '_blank');
+    }
+
+    function reiniciarTodoElTurno() {
+      const calc = calcularCierre();
+      const tsCierre = obtenerTimestampPreciso();
+
+      if (!confirm("¿Confirmas cerrar este turno y archivar el corte en el HISTORIAL para iniciar el siguiente cajero desde CERO?")) {
+        return;
+      }
+
+      const registroHistorico = {
+        id: Date.now(),
+        fecha: tsCierre.fecha,
+        horaApertura: turno.horaApertura || "No reg.",
+        horaCierre: tsCierre.hora,
+        cajero: turno.cajero || "Cajero",
+        supervisor: turno.supervisor || "Supervisor",
+        fondoInicial: calc.fondoInicial,
+        ventaEfectivoPos: calc.vtaEfectivoPos,
+        retirosTotales: calc.totRetiros,
+        efectivoTeorico: calc.efectivoTeoricoEsperado,
+        efectivoFisico: calc.efectivoFisicoCajon,
+        diferencia: calc.diferenciaEfectivo,
+        vouchersTotales: calc.totVouchersContados,
+        ventaTotal: calc.ventaTotalTurno,
+        retirosDetalle: [...(turno.retiros || [])]
+      };
+
+      guardarEnHistorial(registroHistorico);
+
+      turno = {
+        cajero: "",
+        telCajero: "",
+        supervisor: "",
+        fechaApertura: "",
+        horaApertura: "",
+        fondoInicial: 0,
+        retiros: []
+      };
+      localStorage.removeItem('mibilluyo_turno_v7');
+      
+      document.querySelectorAll('input[type="number"]').forEach(input => input.value = '0');
+      document.getElementById('pos-venta-efectivo').value = '';
+      document.getElementById('pos-venta-otros').value = '';
+      document.getElementById('ap-cajero').value = '';
+      document.getElementById('ap-tel-cajero').value = '';
+      document.getElementById('ap-supervisor').value = '';
+      document.getElementById('badge-ap-status').innerText = "No Iniciado";
+      document.getElementById('badge-ap-status').style.background = "#e0f2fe";
+      document.getElementById('badge-ap-status').style.color = "#0369a1";
+      document.getElementById('header-cajero').innerText = "Turno No Iniciado";
+      
+      renderListaRetiros();
+      calcularFondoApertura();
+      calcularCierre();
+      cambiarTab('historial');
+      alert("✅ Turno cerrado y archivado en HISTORIAL.");
+    }
+
+    function renderHistorial() {
+      let historial = [];
+      try {
+        const guardado = localStorage.getItem('mibilluyo_historial_cortes');
+        if (guardado) historial = JSON.parse(guardado);
+      } catch(e){}
+
+      const emptyEl = document.getElementById('contenedor-historial-vacio');
+      const cardsEl = document.getElementById('lista-historial-cards');
+
+      if (!historial || historial.length === 0) {
+        emptyEl.style.display = 'block';
+        cardsEl.innerHTML = '';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      cardsEl.innerHTML = historial.map(c => {
+        let diffBadgeClass = "history-diff-exact";
+        let diffBadgeText = "Exacto ✓";
+        if (c.diferencia < 0) {
+          diffBadgeClass = "history-diff-fail";
+          diffBadgeText = `Faltante -$${Math.abs(c.diferencia).toLocaleString('es-MX')}`;
+        } else if (c.diferencia > 0) {
+          diffBadgeClass = "history-diff-surplus";
+          diffBadgeText = `Sobrante +$${c.diferencia.toLocaleString('es-MX')}`;
+        }
+
+        return `
+          <div class="history-card">
+            <div class="history-header">
+              <div>
+                <div class="history-date">📅 ${c.fecha} (${c.horaApertura} ➔ ${c.horaCierre})</div>
+                <div class="history-actors">👤 Cajero: <strong>${c.cajero}</strong> | 🛡️ Sup: ${c.supervisor}</div>
+              </div>
+              <span class="history-diff-badge ${diffBadgeClass}">${diffBadgeText}</span>
+            </div>
+
+            <div class="history-stats">
+              <div>Fondo Inicial: <strong>$${(c.fondoInicial || 0).toLocaleString('es-MX')}</strong></div>
+              <div>Venta Efectivo: <strong>$${(c.ventaEfectivoPos || 0).toLocaleString('es-MX')}</strong></div>
+              <div>Retiros en Turno: <strong style="color:var(--primary);">-$${(c.retirosTotales || 0).toLocaleString('es-MX')}</strong></div>
+              <div>Sobre Entregado: <strong style="color:var(--accent);">$${(c.efectivoFisico || 0).toLocaleString('es-MX')}</strong></div>
+            </div>
+
+            <div style="border-top: 1px dashed #e2e8f0; padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.82rem; font-weight: 700; color: #475569;">
+                Venta Total: $${(c.ventaTotal || 0).toLocaleString('es-MX')}
+              </span>
+              <button onclick="reenviarCorteHistoricoWhatsApp(${c.id})" style="background: #25d366; color: #fff; border: none; font-size: 0.78rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                📲 Reenviar WhatsApp
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function reenviarCorteHistoricoWhatsApp(id) {
+      let historial = [];
+      try {
+        const guardado = localStorage.getItem('mibilluyo_historial_cortes');
+        if (guardado) historial = JSON.parse(guardado);
+      } catch(e){}
+
+      const c = historial.find(item => item.id === id);
+      if (!c) return;
+
+      let diffTexto = c.diferencia === 0 ? "$0.00 (Exacto ✓)" : (c.diferencia < 0 ? `-$${Math.abs(c.diferencia).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${c.diferencia.toLocaleString('es-MX')} (SOBRANTE)`);
+
+      let detalleRetiros = "";
+      if (c.retirosDetalle && c.retirosDetalle.length > 0) {
+        detalleRetiros = `%0A*DETALLE DE RETIROS PARCIALES:*%0A`;
+        c.retirosDetalle.forEach(r => {
+          detalleRetiros += `⏱️ [${encodeURIComponent(r.hora)}] $${encodeURIComponent(r.monto.toLocaleString('es-MX'))} - ${encodeURIComponent(r.concepto)} (${encodeURIComponent(r.detalle)})%0A`;
+        });
+      }
+
+      let msj = `*HISTÓRICO: CORTE DE CAJA - MI BILLUYO* 💵%0A`;
+      msj += `👤 *Cajero:* ${encodeURIComponent(c.cajero)}%0A`;
+      msj += `🛡️ *Supervisor:* ${encodeURIComponent(c.supervisor)}%0A`;
+      msj += `📅 *Fecha:* ${encodeURIComponent(c.fecha)}%0A`;
+      msj += `⏰ *Horario:* ${encodeURIComponent(c.horaApertura)} a ${encodeURIComponent(c.horaCierre)}%0A`;
+      msj += `--------------------------------%0A`;
+      msj += `(+) Fondo Inicial: $${encodeURIComponent((c.fondoInicial||0).toLocaleString('es-MX'))}%0A`;
+      msj += `(+) Venta Efectivo POS: $${encodeURIComponent((c.ventaEfectivoPos||0).toLocaleString('es-MX'))}%0A`;
+      msj += `(-) Retiros Parciales: -$${encodeURIComponent((c.retirosTotales||0).toLocaleString('es-MX'))}%0A`;
+      msj += `(=) Efectivo Esperado: $${encodeURIComponent((c.efectivoTeorico||0).toLocaleString('es-MX'))}%0A`;
+      msj += `(vs) Físico Contado: $${encodeURIComponent((c.efectivoFisico||0).toLocaleString('es-MX'))}%0A`;
+      msj += `⚖️ *Diferencia:* *${encodeURIComponent(diffTexto)}*%0A`;
+      msj += `--------------------------------%0A`;
+      msj += `📊 *Venta Total Turno:* *$${encodeURIComponent((c.ventaTotal||0).toLocaleString('es-MX'))}*%0A`;
+      msj += `💰 *Efectivo Entregado al Sobre:* *$${encodeURIComponent((c.efectivoFisico||0).toLocaleString('es-MX'))}*%0A`;
+      if (detalleRetiros) msj += detalleRetiros;
+      msj += `--------------------------------%0A`;
+      msj += `Generado desde Historial Mi Billuyo`;
+
+      window.open(`https://api.whatsapp.com/send?text=${msj}`, '_blank');
+    }
+
+    function limpiarTodoElHistorial() {
+      if (confirm("¿Estás seguro de que deseas eliminar TODOS los cortes guardados del historial en este equipo?")) {
+        localStorage.removeItem('mibilluyo_historial_cortes');
+        renderHistorial();
+      }
+    }
+
+    renderDenominacionesApertura();
+    renderDenominacionesCierre();
+    cargarTurnoDeMemoria();
+    calcularFondoApertura();
+    calcularCierre();
+  </script>
+
+  <!-- REGISTRO DEL SERVICE WORKER PARA FUNCIONAMIENTO OFFLINE -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Service Worker registrado:', reg.scope))
+          .catch((err) => console.error('Error al registrar Service Worker:', err));
+      });
+    }
+  </script>
+</body>
+</html>
