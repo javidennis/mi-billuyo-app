@@ -255,7 +255,7 @@
       font-weight: 700; 
       padding: 8px; 
       border-radius: 8px; 
-      margin: 10px 0; 
+      margin: 8px 0; 
       background: rgba(0,0,0,0.3);
       border: 1px dashed #475569;
     }
@@ -348,7 +348,7 @@
 
   <div class="container">
 
-    <!-- MENÚ SUPERIOR (4 PESTAÑAS) -->
+    <!-- MENÚ SUPERIOR -->
     <div class="tabs-nav">
       <button class="tab-btn active" id="btn-tab-apertura" onclick="cambiarTab('apertura')">
         📥 1. Apertura
@@ -365,7 +365,7 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- PESTAÑA 1: APERTURA (CAMPOS LIMPIOS) -->
+    <!-- PESTAÑA 1: APERTURA -->
     <!-- ============================================== -->
     <div id="view-apertura">
       <div class="card">
@@ -472,22 +472,11 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- PESTAÑA 3: CIERRE, ARQUEO Y ENVÍO -->
+    <!-- PESTAÑA 3: CIERRE (CONSOLIDACIÓN TOTAL DE VOUCHERS) -->
     <!-- ============================================== -->
     <div id="view-cierre" style="display: none; flex-direction: column; gap: 14px;">
 
-      <div class="card" style="border: 2px solid #cbd5e1;">
-        <div class="card-title"><span>📊 Ventas Registradas en POS</span></div>
-        <div class="field-row">
-          <label>Venta en EFECTIVO (POS):</label>
-          <input type="number" id="pos-venta-efectivo" class="wide" placeholder="$ 0.00" oninput="calcularCierre()">
-        </div>
-        <div class="field-row">
-          <label>Venta en TARJETAS / OTROS (POS):</label>
-          <input type="number" id="pos-venta-otros" class="wide" placeholder="$ 0.00" oninput="calcularCierre()">
-        </div>
-      </div>
-
+      <!-- 1. BILLETES CONTADOS EN CAJÓN -->
       <div class="card">
         <div class="card-title">
           <span>💵 Efectivo Físico Contado en Cajón</span>
@@ -496,6 +485,7 @@
         <div class="grid-denom" id="container-billetes"></div>
       </div>
 
+      <!-- 2. MONEDAS CONTADAS EN CAJÓN -->
       <div class="card">
         <div class="card-title">
           <span>🪙 Monedas Físicas Contadas en Cajón</span>
@@ -504,6 +494,7 @@
         <div class="grid-denom" id="container-monedas"></div>
       </div>
 
+      <!-- 3. VOUCHERS Y TERMINALES (SUMA TOTAL DE CAMPOS) -->
       <div class="card">
         <div class="card-title">
           <span>💳 Vouchers y Terminales (Físicos)</span>
@@ -532,7 +523,20 @@
         </div>
       </div>
 
-      <!-- RESUMEN CONSOLIDADO -->
+      <!-- 4. VENTAS REGISTRADAS EN POS -->
+      <div class="card" style="border: 2px solid #cbd5e1;">
+        <div class="card-title"><span>📊 Ventas Registradas en POS</span></div>
+        <div class="field-row">
+          <label>Venta en EFECTIVO (POS):</label>
+          <input type="number" id="pos-venta-efectivo" class="wide" placeholder="$ 0.00" oninput="calcularCierre()">
+        </div>
+        <div class="field-row">
+          <label>Venta en TARJETAS / OTROS (POS):</label>
+          <input type="number" id="pos-venta-otros" class="wide" placeholder="$ 0.00" oninput="calcularCierre()">
+        </div>
+      </div>
+
+      <!-- 5. ARQUEO Y CUADRE COMPLETO -->
       <div class="summary-box">
         <div class="card-title" style="color: #94a3b8; margin-bottom: 6px;">
           <span>ARQUEO Y CUADRE DE CAJA</span>
@@ -542,6 +546,7 @@
           Apertura: --:--:-- | Cierre en curso
         </div>
 
+        <!-- SECCIÓN 1: CUADRE DE EFECTIVO -->
         <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px;">
           1. Cuadre de Efectivo
         </div>
@@ -569,17 +574,38 @@
         </div>
 
         <div class="summary-row">
-          <span>(vs) Efectivo Físico Contado en Cajón:</span>
+          <span>(vs) Efectivo Físico en Cajón:</span>
           <strong id="res-efectivo-cajon" style="color: #fff; font-size: 1.05rem;">$0.00</strong>
         </div>
 
         <div class="summary-row diff" id="res-row-diff-efectivo">
           <span id="lbl-diff-title">Diferencia en Efectivo:</span>
-          <strong id="res-diferencia" style="font-size: 1.1rem;">$0.00</strong>
+          <strong id="res-diferencia" style="font-size: 1.05rem;">$0.00</strong>
         </div>
 
+        <!-- SECCIÓN 2: CUADRE TARJETAS Y OTROS MEDIOS (SUMATORIA COMPLETA) -->
+        <div style="font-size: 0.8rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; margin: 12px 0 6px 0;">
+          2. Cuadre Tarjetas y Otros Medios
+        </div>
+
+        <div class="summary-row">
+          <span>(POS) Venta Tarjetas/Otros:</span>
+          <strong id="res-pos-otros-val" style="color: #fff;">$0.00</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>(vs) Total Vouchers Físicos (Tarj+Vales+SPEI):</span>
+          <strong id="res-vouchers-total" style="color: #fff;">$0.00</strong>
+        </div>
+
+        <div class="summary-row diff" id="res-row-diff-vouchers">
+          <span id="lbl-diff-vouch-title">Diferencia Tarjetas/Vouchers:</span>
+          <strong id="res-diferencia-vouchers" style="font-size: 1.05rem;">$0.00</strong>
+        </div>
+
+        <!-- SECCIÓN 3: VENTA TOTAL DEL NEGOCIO -->
         <div style="font-size: 0.8rem; font-weight: 800; color: #fcd34d; text-transform: uppercase; margin: 12px 0 6px 0;">
-          2. Venta Total del Negocio
+          3. Venta Total del Negocio
         </div>
 
         <div class="summary-row">
@@ -588,8 +614,8 @@
         </div>
 
         <div class="summary-row">
-          <span>Venta Otros Medios (Tarjetas/Vales/SPEI):</span>
-          <strong id="res-vouchers-total" style="color: #fff;">$0.00</strong>
+          <span>Venta Tarjetas/Otros (POS):</span>
+          <strong id="res-vta-otros-label" style="color: #fff;">$0.00</strong>
         </div>
 
         <div class="summary-row highlight" style="background: rgba(251, 191, 36, 0.1);">
@@ -598,14 +624,15 @@
         </div>
 
         <div class="summary-row main">
-          <span>TOTAL EFECTIVO A ENTREGAR AL SOBRE:</span>
+          <span>TOTAL EFECTIVO EN SOBRE AL SUPERVISOR:</span>
           <strong id="res-sobre-cierre">$0.00</strong>
         </div>
         <small style="color: #cbd5e1; display: block; margin-top: 4px; font-size: 0.8rem;">
-          Se entrega el 100% del efectivo físico del cajón + comprobantes firmados + vouchers.
+          Se entrega el 100% del efectivo físico del cajón + comprobantes de gastos + vouchers.
         </small>
       </div>
 
+      <!-- BOTONES DE ACCIÓN -->
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <button class="btn-main btn-whatsapp" onclick="enviarCierreWhatsApp(true)">
           📲 Enviar Corte por WhatsApp al Cajero
@@ -620,7 +647,7 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- PESTAÑA 4: HISTORIAL DE CORTES -->
+    <!-- PESTAÑA 4: HISTORIAL -->
     <!-- ============================================== -->
     <div id="view-historial" style="display: none; flex-direction: column; gap: 12px;">
       <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
@@ -776,7 +803,7 @@
         const cant = parseInt(document.getElementById(`ap-m-${m}`).value) || 0;
         const sub = cant * m;
         totM += sub;
-        document.getElementById(`sub-ap-m-${m}`).innerText = `$${sub.toLocaleString('es-MX')}`;
+        document.getElementById(`sub-ap-m-${m}`).innerText = `$${totM.toLocaleString('es-MX')}`;
       });
       document.getElementById('ap-subtotal-monedas').innerText = `$${totM.toLocaleString('es-MX')}`;
 
@@ -943,7 +970,7 @@
       calcularCierre();
     }
 
-    // --- CÁLCULO DE CIERRE ---
+    // --- CÁLCULO DE CIERRE CON AUDITORÍA EXACTA DE VOUCHERS ---
     function calcularCierre() {
       let totBilletes = 0;
       billetes.forEach(b => {
@@ -959,7 +986,7 @@
         const cant = parseInt(document.getElementById(`input-m-${m}`).value) || 0;
         const sub = cant * m;
         totMonedas += sub;
-        document.getElementById(`sub-m-${m}`).innerText = `$${sub.toLocaleString('es-MX')}`;
+        document.getElementById(`sub-m-${m}`).innerText = `$${totMonedas.toLocaleString('es-MX')}`;
       });
       document.getElementById('subtotal-monedas').innerText = `$${totMonedas.toLocaleString('es-MX')}`;
 
@@ -968,10 +995,12 @@
       const vtaEfectivoPos = parseFloat(document.getElementById('pos-venta-efectivo').value) || 0;
       const vtaOtrosPos = parseFloat(document.getElementById('pos-venta-otros').value) || 0;
 
+      // SUMATORIA DE TODOS LOS CAMPOS DE VOUCHERS
       const tarjMonto = parseFloat(document.getElementById('vouch-tarj-monto').value) || 0;
       const valesMonto = parseFloat(document.getElementById('vouch-vales-monto').value) || 0;
       const speiMonto = parseFloat(document.getElementById('vouch-spei-monto').value) || 0;
       const totVouchersContados = tarjMonto + valesMonto + speiMonto;
+      
       document.getElementById('subtotal-vouchers').innerText = `$${totVouchersContados.toLocaleString('es-MX')}`;
 
       let totRetiros = 0;
@@ -990,10 +1019,16 @@
         desgloseEl.style.display = 'none';
       }
 
+      // 1. CUADRE EFECTIVO
       const fondoInicial = turno.fondoInicial || 0;
       const efectivoTeoricoEsperado = fondoInicial + vtaEfectivoPos - totRetiros;
       const diferenciaEfectivo = efectivoFisicoCajon - efectivoTeoricoEsperado;
-      const ventaTotalTurno = vtaEfectivoPos + (vtaOtrosPos > 0 ? vtaOtrosPos : totVouchersContados);
+
+      // 2. CUADRE DE VOUCHERS (Físicos totales vs POS Tarjetas/Otros)
+      const diferenciaVouchers = totVouchersContados - vtaOtrosPos;
+
+      // 3. VENTA TOTAL NEGOCIO
+      const ventaTotalTurno = vtaEfectivoPos + vtaOtrosPos;
 
       const tsActual = obtenerTimestampPreciso();
       document.getElementById('cierre-tiempos-resumen').innerText = 
@@ -1005,39 +1040,70 @@
       document.getElementById('res-efectivo-teorico').innerText = `$${efectivoTeoricoEsperado.toLocaleString('es-MX')}`;
       document.getElementById('res-efectivo-cajon').innerText = `$${efectivoFisicoCajon.toLocaleString('es-MX')}`;
 
+      // RENDER DIFERENCIA EN EFECTIVO
       const diffEl = document.getElementById('res-diferencia');
       const diffTitle = document.getElementById('lbl-diff-title');
       if (vtaEfectivoPos === 0 && totRetiros === 0 && fondoInicial === 0) {
-        diffTitle.innerText = "Diferencia:";
+        diffTitle.innerText = "Diferencia Efectivo:";
         diffEl.innerText = "$0.00";
         diffEl.style.color = "#94a3b8";
       } else if (diferenciaEfectivo === 0) {
-        diffTitle.innerText = "Diferencia en Efectivo:";
+        diffTitle.innerText = "Diferencia Efectivo:";
         diffEl.innerText = "$0.00 (Exacto ✓)";
         diffEl.style.color = "#34d399";
       } else if (diferenciaEfectivo < 0) {
-        diffTitle.innerText = "Diferencia en Efectivo:";
+        diffTitle.innerText = "Diferencia Efectivo:";
         diffEl.innerText = `-$${Math.abs(diferenciaEfectivo).toLocaleString('es-MX')} (FALTANTE ⚠️)`;
         diffEl.style.color = "#f87171";
       } else {
-        diffTitle.innerText = "Diferencia en Efectivo:";
+        diffTitle.innerText = "Diferencia Efectivo:";
         diffEl.innerText = `+$${diferenciaEfectivo.toLocaleString('es-MX')} (SOBRANTE)`;
         diffEl.style.color = "#60a5fa";
       }
 
+      // RENDER DIFERENCIA EN TARJETAS / VOUCHERS
+      document.getElementById('res-pos-otros-val').innerText = `$${vtaOtrosPos.toLocaleString('es-MX')}`;
+      document.getElementById('res-vouchers-total').innerText = `$${totVouchersContados.toLocaleString('es-MX')}`;
+
+      const diffVouchEl = document.getElementById('res-diferencia-vouchers');
+      const diffVouchTitle = document.getElementById('lbl-diff-vouch-title');
+      if (vtaOtrosPos === 0 && totVouchersContados === 0) {
+        diffVouchTitle.innerText = "Diferencia Tarjetas/Vouchers:";
+        diffVouchEl.innerText = "$0.00";
+        diffVouchEl.style.color = "#94a3b8";
+      } else if (diferenciaVouchers === 0) {
+        diffVouchTitle.innerText = "Diferencia Tarjetas/Vouchers:";
+        diffVouchEl.innerText = "$0.00 (Exacto ✓)";
+        diffVouchEl.style.color = "#34d399";
+      } else if (diferenciaVouchers < 0) {
+        diffVouchTitle.innerText = "Diferencia Tarjetas/Vouchers:";
+        diffVouchEl.innerText = `-$${Math.abs(diferenciaVouchers).toLocaleString('es-MX')} (FALTANTE ⚠️)`;
+        diffVouchEl.style.color = "#f87171";
+      } else {
+        diffVouchTitle.innerText = "Diferencia Tarjetas/Vouchers:";
+        diffVouchEl.innerText = `+$${diferenciaVouchers.toLocaleString('es-MX')} (SOBRANTE)`;
+        diffVouchEl.style.color = "#60a5fa";
+      }
+
+      // VENTA TOTAL
       document.getElementById('res-vta-efectivo-label').innerText = `$${vtaEfectivoPos.toLocaleString('es-MX')}`;
-      document.getElementById('res-vouchers-total').innerText = `$${(vtaOtrosPos > 0 ? vtaOtrosPos : totVouchersContados).toLocaleString('es-MX')}`;
+      document.getElementById('res-vta-otros-label').innerText = `$${vtaOtrosPos.toLocaleString('es-MX')}`;
       document.getElementById('res-gran-total-venta').innerText = `$${ventaTotalTurno.toLocaleString('es-MX')}`;
       document.getElementById('res-sobre-cierre').innerText = `$${efectivoFisicoCajon.toLocaleString('es-MX')}`;
 
       return {
         fondoInicial,
         vtaEfectivoPos,
+        vtaOtrosPos,
+        tarjMonto,
+        valesMonto,
+        speiMonto,
         totRetiros,
         efectivoTeoricoEsperado,
         efectivoFisicoCajon,
         diferenciaEfectivo,
         totVouchersContados,
+        diferenciaVouchers,
         ventaTotalTurno,
         agrupados
       };
@@ -1072,7 +1138,9 @@
         });
       }
 
-      let diffTexto = calc.diferenciaEfectivo === 0 ? "$0.00 (Exacto ✓)" : (calc.diferenciaEfectivo < 0 ? `-$${Math.abs(calc.diferenciaEfectivo).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${calc.diferenciaEfectivo.toLocaleString('es-MX')} (SOBRANTE)`);
+      let diffEfectivoTexto = calc.diferenciaEfectivo === 0 ? "$0.00 (Exacto ✓)" : (calc.diferenciaEfectivo < 0 ? `-$${Math.abs(calc.diferenciaEfectivo).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${calc.diferenciaEfectivo.toLocaleString('es-MX')} (SOBRANTE)`);
+
+      let diffVouchersTexto = calc.diferenciaVouchers === 0 ? "$0.00 (Exacto ✓)" : (calc.diferenciaVouchers < 0 ? `-$${Math.abs(calc.diferenciaVouchers).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${calc.diferenciaVouchers.toLocaleString('es-MX')} (SOBRANTE)`);
 
       let msj = `*CORTE DE CAJA - MI BILLUYO* 💵%0A`;
       msj += `👤 *Cajero:* ${encodeURIComponent(turno.cajero || 'Cajero')}%0A`;
@@ -1089,11 +1157,21 @@
       msj += `--------------------------------%0A`;
       msj += `(=) Efectivo que DEBE haber: *$${encodeURIComponent(calc.efectivoTeoricoEsperado.toLocaleString('es-MX'))}*%0A`;
       msj += `(vs) Efectivo Físico Contado: *$${encodeURIComponent(calc.efectivoFisicoCajon.toLocaleString('es-MX'))}*%0A`;
-      msj += `⚖️ *Diferencia en Caja:* *${encodeURIComponent(diffTexto)}*%0A`;
+      msj += `⚖️ *Diferencia en Efectivo:* *${encodeURIComponent(diffEfectivoTexto)}*%0A`;
       msj += `================================%0A`;
-      msj += `*2. VENTA TOTAL NEGOCIO:*%0A`;
+      msj += `*2. CUADRE TARJETAS Y VOUCHERS:*%0A`;
+      msj += `(POS) Venta Tarjetas/Otros: $${encodeURIComponent(calc.vtaOtrosPos.toLocaleString('es-MX'))}%0A`;
+      msj += `(vs) Vouchers Contados: $${encodeURIComponent(calc.totVouchersContados.toLocaleString('es-MX'))}%0A`;
+      if (calc.tarjMonto > 0 || calc.valesMonto > 0 || calc.speiMonto > 0) {
+        msj += `   • Tarjetas: $${encodeURIComponent(calc.tarjMonto.toLocaleString('es-MX'))}%0A`;
+        if (calc.valesMonto > 0) msj += `   • Vales: $${encodeURIComponent(calc.valesMonto.toLocaleString('es-MX'))}%0A`;
+        if (calc.speiMonto > 0) msj += `   • SPEI: $${encodeURIComponent(calc.speiMonto.toLocaleString('es-MX'))}%0A`;
+      }
+      msj += `⚖️ *Diferencia Tarjetas/Vouchers:* *${encodeURIComponent(diffVouchersTexto)}*%0A`;
+      msj += `================================%0A`;
+      msj += `*3. VENTA TOTAL NEGOCIO:*%0A`;
       msj += `• Efectivo POS: $${encodeURIComponent(calc.vtaEfectivoPos.toLocaleString('es-MX'))}%0A`;
-      msj += `• Otros Medios (Tarjetas/Vales): $${encodeURIComponent(calc.totVouchersContados.toLocaleString('es-MX'))}%0A`;
+      msj += `• Otros Medios POS: $${encodeURIComponent(calc.vtaOtrosPos.toLocaleString('es-MX'))}%0A`;
       msj += `📊 *TOTAL VENDIDO:* *$${encodeURIComponent(calc.ventaTotalTurno.toLocaleString('es-MX'))}*%0A`;
       msj += `================================%0A`;
       msj += `💰 *EFECTIVO EN SOBRE AL SUPERVISOR:* *$${encodeURIComponent(calc.efectivoFisicoCajon.toLocaleString('es-MX'))}*%0A`;
@@ -1126,11 +1204,13 @@
         supervisor: turno.supervisor || "Supervisor",
         fondoInicial: calc.fondoInicial,
         ventaEfectivoPos: calc.vtaEfectivoPos,
+        ventaOtrosPos: calc.vtaOtrosPos,
         retirosTotales: calc.totRetiros,
         efectivoTeorico: calc.efectivoTeoricoEsperado,
         efectivoFisico: calc.efectivoFisicoCajon,
         diferencia: calc.diferenciaEfectivo,
         vouchersTotales: calc.totVouchersContados,
+        diferenciaVouchers: calc.diferenciaVouchers,
         ventaTotal: calc.ventaTotalTurno,
         retirosDetalle: [...(turno.retiros || [])]
       };
@@ -1151,6 +1231,11 @@
       document.querySelectorAll('input[type="number"]').forEach(input => input.value = '0');
       document.getElementById('pos-venta-efectivo').value = '';
       document.getElementById('pos-venta-otros').value = '';
+      document.getElementById('vouch-tarj-pzs').value = '';
+      document.getElementById('vouch-tarj-monto').value = '';
+      document.getElementById('vouch-vales-pzs').value = '';
+      document.getElementById('vouch-vales-monto').value = '';
+      document.getElementById('vouch-spei-monto').value = '';
       document.getElementById('ap-cajero').value = '';
       document.getElementById('ap-tel-cajero').value = '';
       document.getElementById('ap-supervisor').value = '';
@@ -1185,13 +1270,18 @@
       emptyEl.style.display = 'none';
       cardsEl.innerHTML = historial.map(c => {
         let diffBadgeClass = "history-diff-exact";
-        let diffBadgeText = "Exacto ✓";
+        let diffBadgeText = "Efec: Exacto ✓";
         if (c.diferencia < 0) {
           diffBadgeClass = "history-diff-fail";
-          diffBadgeText = `Faltante -$${Math.abs(c.diferencia).toLocaleString('es-MX')}`;
+          diffBadgeText = `Efec: -$${Math.abs(c.diferencia).toLocaleString('es-MX')}`;
         } else if (c.diferencia > 0) {
           diffBadgeClass = "history-diff-surplus";
-          diffBadgeText = `Sobrante +$${c.diferencia.toLocaleString('es-MX')}`;
+          diffBadgeText = `Efec: +$${c.diferencia.toLocaleString('es-MX')}`;
+        }
+
+        let vouchDiffText = "";
+        if (c.diferenciaVouchers !== undefined && c.diferenciaVouchers !== 0) {
+          vouchDiffText = ` | Vouchers: ${c.diferenciaVouchers < 0 ? '-' : '+'}$${Math.abs(c.diferenciaVouchers).toLocaleString('es-MX')}`;
         }
 
         return `
@@ -1213,7 +1303,7 @@
 
             <div style="border-top: 1px dashed #e2e8f0; padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 0.82rem; font-weight: 700; color: #475569;">
-                Venta Total: $${(c.ventaTotal || 0).toLocaleString('es-MX')}
+                Venta Total: $${(c.ventaTotal || 0).toLocaleString('es-MX')}${vouchDiffText}
               </span>
               <button onclick="reenviarCorteHistoricoWhatsApp(${c.id})" style="background: #25d366; color: #fff; border: none; font-size: 0.78rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                 📲 Reenviar WhatsApp
@@ -1234,7 +1324,9 @@
       const c = historial.find(item => item.id === id);
       if (!c) return;
 
-      let diffTexto = c.diferencia === 0 ? "$0.00 (Exacto ✓)" : (c.diferencia < 0 ? `-$${Math.abs(c.diferencia).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${c.diferencia.toLocaleString('es-MX')} (SOBRANTE)`);
+      let diffEfectivoTexto = c.diferencia === 0 ? "$0.00 (Exacto ✓)" : (c.diferencia < 0 ? `-$${Math.abs(c.diferencia).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${c.diferencia.toLocaleString('es-MX')} (SOBRANTE)`);
+
+      let diffVouchersTexto = (c.diferenciaVouchers || 0) === 0 ? "$0.00 (Exacto ✓)" : ((c.diferenciaVouchers || 0) < 0 ? `-$${Math.abs(c.diferenciaVouchers).toLocaleString('es-MX')} (FALTANTE ⚠️)` : `+$${c.diferenciaVouchers.toLocaleString('es-MX')} (SOBRANTE)`);
 
       let detalleRetiros = "";
       if (c.retirosDetalle && c.retirosDetalle.length > 0) {
@@ -1250,12 +1342,18 @@
       msj += `📅 *Fecha:* ${encodeURIComponent(c.fecha)}%0A`;
       msj += `⏰ *Horario:* ${encodeURIComponent(c.horaApertura)} a ${encodeURIComponent(c.horaCierre)}%0A`;
       msj += `--------------------------------%0A`;
+      msj += `*1. CUADRE EFECTIVO:*%0A`;
       msj += `(+) Fondo Inicial: $${encodeURIComponent((c.fondoInicial||0).toLocaleString('es-MX'))}%0A`;
       msj += `(+) Venta Efectivo POS: $${encodeURIComponent((c.ventaEfectivoPos||0).toLocaleString('es-MX'))}%0A`;
       msj += `(-) Retiros Parciales: -$${encodeURIComponent((c.retirosTotales||0).toLocaleString('es-MX'))}%0A`;
       msj += `(=) Efectivo Esperado: $${encodeURIComponent((c.efectivoTeorico||0).toLocaleString('es-MX'))}%0A`;
       msj += `(vs) Físico Contado: $${encodeURIComponent((c.efectivoFisico||0).toLocaleString('es-MX'))}%0A`;
-      msj += `⚖️ *Diferencia:* *${encodeURIComponent(diffTexto)}*%0A`;
+      msj += `⚖️ *Diferencia Efectivo:* *${encodeURIComponent(diffEfectivoTexto)}*%0A`;
+      msj += `--------------------------------%0A`;
+      msj += `*2. CUADRE VOUCHERS:*%0A`;
+      msj += `(POS) Venta Tarjetas/Otros: $${encodeURIComponent((c.ventaOtrosPos||0).toLocaleString('es-MX'))}%0A`;
+      msj += `(vs) Vouchers Contados: $${encodeURIComponent((c.vouchersTotales||0).toLocaleString('es-MX'))}%0A`;
+      msj += `⚖️ *Diferencia Vouchers:* *${encodeURIComponent(diffVouchersTexto)}*%0A`;
       msj += `--------------------------------%0A`;
       msj += `📊 *Venta Total Turno:* *$${encodeURIComponent((c.ventaTotal||0).toLocaleString('es-MX'))}*%0A`;
       msj += `💰 *Efectivo Entregado al Sobre:* *$${encodeURIComponent((c.efectivoFisico||0).toLocaleString('es-MX'))}*%0A`;
@@ -1280,7 +1378,7 @@
     calcularCierre();
   </script>
 
-  <!-- REGISTRO DEL SERVICE WORKER PARA FUNCIONAMIENTO OFFLINE -->
+  <!-- REGISTRO DEL SERVICE WORKER -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
